@@ -1,1 +1,1 @@
-#define UTS_RELEASE "3.10.103-Nougat-BETA-g1bd37f0-dirty"
+#define UTS_RELEASE "3.10.105-Daredevil™-v2.1+"

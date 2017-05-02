@@ -2258,6 +2258,7 @@ void console_unlock(void)
 		up(&console_sem);
 		return;
 	}
+
 	/*
 	 * Console drivers are called under logbuf_lock, so
 	 * @console_may_schedule should be cleared before; however, we may
