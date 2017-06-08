@@ -2630,6 +2630,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 
 cleanup:
 
+
 		handling_skipped_tds = ep->skip &&
 			trb_comp_code != COMP_MISSED_INT &&
 			trb_comp_code != COMP_PING_ERR;
@@ -2640,7 +2641,6 @@ cleanup:
 		 */
 		if (!handling_skipped_tds)
 			inc_deq(xhci, xhci->event_ring);
-		}
 
 		if (ret) {
 			urb = td->urb;
@@ -3169,7 +3169,10 @@ static u32 xhci_td_remainder(unsigned int remainder)
 	else
 		return (remainder >> 10) << 17;
 }
+#endif
 
+
+#ifndef CONFIG_MTK_XHCI
 /*
  * For xHCI 1.0 host controllers, TD size is the number of max packet sized
  * packets remaining in the TD (*not* including this TRB).
@@ -3240,7 +3243,7 @@ static int queue_bulk_sg_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 			ep_index, urb->stream_id,
 			num_trbs, urb, 0, mem_flags);
 	if (ret < 0)
-		return trb_buff_len;
+		return ret;
 
 	urb_priv = urb->hcpriv;
 
@@ -3630,11 +3633,11 @@ int xhci_queue_ctrl_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 	if (start_cycle == 0)
 		field |= 0x1;
 
-	/* xHCI 1.0/1.1 6.4.1.2.1: Transfer Type field */
+	/* xHCI 1.0 6.4.1.2.1: Transfer Type field */
 #ifdef CONFIG_MTK_XHCI
 	if(1){
 #else
-	if (xhci->hci_version >= 0x100) {
+	if (xhci->hci_version == 0x100) {
 #endif
 		if (urb->transfer_buffer_length > 0) {
 			if (setup->bRequestType & USB_DIR_IN)

@@ -2234,7 +2234,6 @@ again:
 			mutex_unlock(&u->readlock);
 
 			timeo = unix_stream_data_wait(sk, timeo, last);
-
 			if (!timeo) {
 				if (sk && sk->sk_socket) {
 					if (other && other->sk_socket) {
@@ -2263,7 +2262,6 @@ again:
 			}
 
 			mutex_lock(&u->readlock);
-
 			continue;
  unlock:
 			unix_state_unlock(sk);

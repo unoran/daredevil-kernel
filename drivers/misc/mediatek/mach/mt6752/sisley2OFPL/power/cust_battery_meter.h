@@ -67,7 +67,7 @@
 
 /* battery meter parameter */
 #define CHANGE_TRACKING_POINT
-#define CUST_TRACKING_POINT  1
+#define CUST_TRACKING_POINT  10
 #define CUST_R_SENSE         68
 #define CUST_HW_CC 		    0
 #define AGING_TUNING_VALUE   103
