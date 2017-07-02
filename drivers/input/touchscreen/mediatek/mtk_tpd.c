@@ -29,8 +29,13 @@
 #include <asm/uaccess.h>
 #include <linux/fb.h>
 
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+#include <linux/input/sweep2wake.h>
+#endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 #include <linux/input/doubletap2wake.h>
+#endif
 #endif
 
 #ifdef CONFIG_COMPAT
@@ -327,13 +332,11 @@ static int tpd_remove(struct platform_device *pdev);
 #ifndef CONFIG_HAS_EARLYSUSPEND
 static int tpd_suspend_flag = 0;
 #endif
-
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 #include <cust_eint.h>
 void (*nyx_suspend) (struct early_suspend *h);
 void (*nyx_resume) (struct early_suspend *h);
 #endif
-
 extern void tpd_button_init(void);
 
 /* int tpd_load_status = 0; //0: failed, 1: sucess */
@@ -526,10 +529,13 @@ static void eros_suspend(struct early_suspend *h) {
 	 */
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
 	prevent_sleep = (s2w_switch > 0) && (s2w_s2sonly == 0);
+	prevent_sleep = (prevent_sleep && !in_phone_call);
 	s2w_scr_suspended = true;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
-	prevent_sleep = prevent_sleep || (dt2w_switch > 0);
+	//prevent_sleep = prevent_sleep || (dt2w_switch > 0);
+	prevent_sleep = (dt2w_switch > 0);
+	prevent_sleep = (prevent_sleep && !in_phone_call);
 	dt2w_scr_suspended = true;
 #endif
 
@@ -546,10 +552,13 @@ static void eros_resume(struct early_suspend *h) {
 #endif
 #if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
 	prevent_sleep = (s2w_switch > 0) && (s2w_s2sonly == 0);
+	prevent_sleep = (prevent_sleep && !in_phone_call);
 	s2w_scr_suspended = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
-	prevent_sleep = prevent_sleep || (dt2w_switch > 0);
+	//prevent_sleep = prevent_sleep || (dt2w_switch > 0);
+	prevent_sleep = (dt2w_switch > 0);
+	prevent_sleep = (prevent_sleep && !in_phone_call);
 	dt2w_scr_suspended = false;
 #endif
 
@@ -577,6 +586,7 @@ static void eros_resume(struct early_suspend *h) {
 
 #endif
 
+
 /* touch panel probe */
 static int tpd_probe(struct platform_device *pdev)
 {
@@ -592,7 +602,11 @@ static int tpd_probe(struct platform_device *pdev)
 		touch_type = 0;
 		TPD_DMESG("Generic touch panel driver\n");
 	}
-
+#ifdef CONFIG_HAS_EARLYSUSPEND
+	MTK_TS_early_suspend_handler.suspend = g_tpd_drv->suspend;
+	MTK_TS_early_suspend_handler.resume = g_tpd_drv->resume;
+	register_early_suspend(&MTK_TS_early_suspend_handler);
+#endif
 #endif
 #if !defined(CONFIG_LENOVO_CTP_FEATURE)
 /*Begin lenovo-sw wengjun1 add for tp info struct. 2014-1-15*/
@@ -691,13 +705,12 @@ static int tpd_probe(struct platform_device *pdev)
 #ifdef CONFIG_EARLYSUSPEND
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 	if ((g_tpd_drv->suspend != NULL) && (g_tpd_drv->resume != NULL)) {
-		nyx_suspend = g_tpd_drv->suspend;
+ 	 	nyx_suspend = g_tpd_drv->suspend;
 		nyx_resume  = g_tpd_drv->resume;
 		MTK_TS_early_suspend_handler.suspend = eros_suspend;
 		MTK_TS_early_suspend_handler.resume  = eros_resume;
 	}
 #endif
-
 	register_early_suspend(&MTK_TS_early_suspend_handler);
 #endif
 #endif
@@ -708,7 +721,6 @@ static int tpd_probe(struct platform_device *pdev)
 		TPD_DMESG("register fb_notifier fail!\n");
 #endif
 #endif
-
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 	if ((g_tpd_drv->suspend != NULL) && (g_tpd_drv->resume != NULL)) {
 		if ((nyx_suspend == NULL) && (nyx_resume == NULL)) {
@@ -724,7 +736,6 @@ static int tpd_probe(struct platform_device *pdev)
 		}
 	}
 #endif
-
 /* #ifdef TPD_TYPE_CAPACITIVE */
 	/* TPD_TYPE_CAPACITIVE handle */
 	if (touch_type == 1) {

@@ -22,8 +22,10 @@
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 #endif
-
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+#include <linux/input/sweep2wake.h>
+#endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 #include <linux/input/doubletap2wake.h>
 #endif
@@ -872,9 +874,13 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	__set_bit(KPD_PMIC_RSTKEY_MAP, kpd_input_dev->keybit);
 #endif
 #endif
-
-#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	sweep2wake_setdev(kpd_input_dev);
+#endif
+/*#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 	doubletap2wake_setdev(kpd_input_dev);
+#endif*/
 #endif
 
 #ifdef KPD_KEY_MAP

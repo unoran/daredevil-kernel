@@ -150,8 +150,9 @@ static int disp_gamma_set_lut(const DISP_GAMMA_LUT_T __user *user_gamma_lut, voi
 		memcpy(gamma_lut, user_gamma_lut, sizeof(DISP_GAMMA_LUT_T));
 	} else
 #endif
+
 	if (copy_from_user(gamma_lut, user_gamma_lut, sizeof(DISP_GAMMA_LUT_T)) != 0) {
-		printk(KERN_ERR "[GAMMA] disp_gamma_set_lut: cannot copy from user mem");
+        printk(KERN_ERR "[GAMMA] disp_gamma_set_lut: cannot copy from user mem\n");
 		ret = -EFAULT;
 		kfree(gamma_lut);
 	}

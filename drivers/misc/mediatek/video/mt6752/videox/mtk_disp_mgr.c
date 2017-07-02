@@ -1920,7 +1920,6 @@ long mtk_disp_mgr_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case DISP_IOCTL_PQ_SET_BYPASS_COLOR:
 	case DISP_IOCTL_PQ_SET_WINDOW:
 	case DISP_IOCTL_OD_CTL:
-	case DISP_IOCTL_WRITE_REG:
 	case DISP_IOCTL_READ_REG:
 	case DISP_IOCTL_MUTEX_CONTROL:
 	case DISP_IOCTL_PQ_GET_TDSHP_FLAG:
@@ -2159,6 +2158,11 @@ static int __init mtk_disp_mgr_init(void)
 
 static void __exit mtk_disp_mgr_exit(void)
 {
+#ifdef CONFIG_MTK_VIDEOX_CYNGN_LIVEDISPLAY
+	mutex_destroy(&mtk_rgb_work_queue.lock);
+	sysfs_remove_file(&(mtk_disp_mgr_device.dev.kobj), &dev_attr_rgb.attr);
+#endif
+
 	cdev_del(mtk_disp_mgr_cdev);
 	unregister_chrdev_region(mtk_disp_mgr_devno, 1);
 
